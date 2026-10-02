@@ -15,7 +15,7 @@ all:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
 user:
-	$(CC) -Wall -Wextra -O2 -o hello_test hello_test.c
+	$(CC) -Wall -Wextra -Werror -O2 -o hello_test hello_test.c
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
