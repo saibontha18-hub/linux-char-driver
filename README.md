@@ -1,5 +1,7 @@
 # hello-char-driver
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Language](https://img.shields.io/badge/language-C-blue.svg)](hello_char.c) [![Tests](https://img.shields.io/badge/tests-9%20passing-brightgreen.svg)](#)
+
 A small Linux character device driver I wrote to learn the standard building blocks: `alloc_chrdev_region`, `cdev_add`, device-class creation, `open`/`read`/`write` with per-device mutexes, `container_of` to get from `inode->i_cdev` to my per-minor struct, and an `ioctl` interface shared with user space through `hello_ioctl.h`.
 
 It registers `/dev/hello_char0` … `/dev/hello_char{num_minors-1}` (`num_minors` module parameter, default 4, max 8). Each minor owns an independent message buffer and I/O stats.
