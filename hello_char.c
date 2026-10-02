@@ -1,14 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * hello_char.c - Minimal Linux character device driver skeleton.
- *
- * Creates /dev/hello_char0 .. /dev/hello_char{num_minors-1} (module
- * parameter num_minors, default 4, max 8). Each minor owns an independent
- * message buffer and I/O statistics. File operations: open/read/write
- * plus ioctls RESET, GET_LEN, SET_MSG, GET_MSG, GET_STATS (see
- * hello_ioctl.h for the shared interface definition).
- *
- * Intended as a learning/bring-up skeleton, not a production driver.
+ * hello_char - a small character driver I wrote to learn the standard
+ * building blocks: chrdev region, cdev, device class, per-minor state
+ * reached via container_of, and an ioctl interface shared with user
+ * space (see hello_ioctl.h). Bring-up/learning code, not production.
  */
 
 #include <linux/init.h>
@@ -269,6 +264,7 @@ static int __init hello_init(void)
 	return 0;
 
 err_device:
+	/* i is one past the last device that was created successfully */
 	for (i--; i >= 0; i--)
 		device_destroy(hello_class, MKDEV(major, i));
 	class_destroy(hello_class);

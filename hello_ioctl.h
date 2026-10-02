@@ -1,11 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0 OR MIT */
 /*
- * hello_ioctl.h - Shared ioctl interface between the hello_char kernel
- * driver and user-space programs.
- *
- * Included by the driver (where the kernel build defines __KERNEL__) and
- * by hello_test.c. Both sides see identical command codes and struct
- * layouts; the test validates the layout explicitly.
+ * hello_ioctl.h - ioctl interface shared by the hello_char driver and
+ * user-space programs. Both sides include this, so command codes and
+ * struct layouts can't drift apart (the test checks the layout).
  */
 #ifndef HELLO_IOCTL_H
 #define HELLO_IOCTL_H

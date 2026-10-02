@@ -1,13 +1,9 @@
 /*
- * hello_test.c - User-space test for /dev/hello_charN.
+ * hello_test.c - user-space test for /dev/hello_charN.
  *
- * Exercises read/write, the RESET/GET_LEN ioctls, the SET_MSG/GET_MSG
- * message ioctls, the GET_STATS counters, and per-minor independence.
- *
- * Safe to run without the module loaded: hardware-dependent checks are
- * reported as SKIP, while the ioctl-interface definition checks (struct
- * layout, command codes, transfer directions) always run. Exit status is 0
- * unless a check actually FAILs.
+ * Runs fine without the module loaded: hardware checks report SKIP,
+ * the ioctl-interface checks always run. Exit 0 unless something
+ * actually FAILs.
  */
 
 #include <stdio.h>
