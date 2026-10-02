@@ -1,6 +1,18 @@
 # hello-char-driver
 
-A minimal Linux character device driver skeleton. It registers `/dev/hello_char` and demonstrates the standard driver building blocks: `alloc_chrdev_region`, `cdev_add`, device-class creation, `open`/`read`/`write` file operations protected by a mutex, and a small `ioctl` interface (`RESET`, `GET_LEN`). A companion user-space program (`hello_test.c`) exercises the driver end to end.
+A minimal Linux character device driver skeleton. It registers `/dev/hello_char0` … `/dev/hello_char{num_minors-1}` (module parameter `num_minors`, default 4, max 8 — each minor owns an independent buffer and statistics) and demonstrates the standard driver building blocks: `alloc_chrdev_region`, `cdev_add`, device-class creation, `open`/`read`/`write` file operations protected by per-device mutexes, `container_of` to reach the per-minor device struct from `inode->i_cdev`, and an `ioctl` interface shared with user space through `hello_ioctl.h`. A companion user-space program (`hello_test.c`) exercises the driver end to end — and still passes (with hardware checks reported as SKIP) on machines without the module loaded.
+
+## ioctl interface
+
+| Command | Direction | Argument | Effect |
+|---|---|---|---|
+| `HELLO_IOCTL_RESET` | none | — | Clear the buffer |
+| `HELLO_IOCTL_GET_LEN` | read | `size_t *` | Bytes currently stored |
+| `HELLO_IOCTL_SET_MSG` | write | `struct hello_msg *` | Replace the buffer (rejects `len > 256`) |
+| `HELLO_IOCTL_GET_MSG` | read | `struct hello_msg *` | Fetch the buffer |
+| `HELLO_IOCTL_GET_STATS` | read | `struct hello_stats *` | `bytes_read`, `bytes_written`, `opens`, `minor` |
+
+`struct hello_msg` carries `text[256]` + `len`; `struct hello_stats` carries the per-minor counters. Both structs and all command codes live in `hello_ioctl.h`, which is included by the driver and the test so they can never drift apart.
 
 ## Prerequisites
 
@@ -29,10 +41,15 @@ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KDIR=/path/to/target/kernel
 
 ```sh
 sudo insmod hello_char.ko
-dmesg | tail -5            # look for "hello_char: loaded, major=..., node=/dev/hello_char"
-ls -l /dev/hello_char
+dmesg | tail -5            # look for "hello_char: loaded, major=..., 4 minors ..."
+ls -l /dev/hello_char*     # hello_char0 .. hello_char3
 
 sudo ./hello_test           # writes, reads back, checks ioctls; prints PASS on success
+
+# fewer minors:
+sudo rmmod hello_char
+sudo insmod hello_char.ko num_minors=2
+ls -l /dev/hello_char*
 
 sudo rmmod hello_char
 dmesg | tail -3            # look for "hello_char: unloaded"
@@ -45,7 +62,8 @@ Loading an out-of-tree kernel module runs code in kernel space. Use a VM or a de
 ## Files
 
 - `hello_char.c` — the driver
-- `hello_test.c` — user-space smoke test
+- `hello_ioctl.h` — ioctl commands and structs shared by driver and test
+- `hello_test.c` — user-space test (passes with SKIPs when the module isn't loaded)
 - `Makefile` — module + test builds
 
 ## License
