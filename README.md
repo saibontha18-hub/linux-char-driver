@@ -1,6 +1,10 @@
 # hello-char-driver
 
-A minimal Linux character device driver skeleton. It registers `/dev/hello_char0` … `/dev/hello_char{num_minors-1}` (module parameter `num_minors`, default 4, max 8 — each minor owns an independent buffer and statistics) and demonstrates the standard driver building blocks: `alloc_chrdev_region`, `cdev_add`, device-class creation, `open`/`read`/`write` file operations protected by per-device mutexes, `container_of` to reach the per-minor device struct from `inode->i_cdev`, and an `ioctl` interface shared with user space through `hello_ioctl.h`. A companion user-space program (`hello_test.c`) exercises the driver end to end — and still passes (with hardware checks reported as SKIP) on machines without the module loaded.
+A small Linux character device driver I wrote to learn the standard building blocks: `alloc_chrdev_region`, `cdev_add`, device-class creation, `open`/`read`/`write` with per-device mutexes, `container_of` to get from `inode->i_cdev` to my per-minor struct, and an `ioctl` interface shared with user space through `hello_ioctl.h`.
+
+It registers `/dev/hello_char0` … `/dev/hello_char{num_minors-1}` (`num_minors` module parameter, default 4, max 8). Each minor owns an independent message buffer and I/O stats.
+
+`hello_test.c` exercises the driver end to end. It still passes on machines without the module loaded — the hardware checks just report SKIP, so CI stays green.
 
 ## ioctl interface
 
