@@ -71,6 +71,15 @@ static void check_interface(void)
 	check_dir("GET_MSG", HELLO_IOCTL_GET_MSG, _IOC_READ);
 	check_dir("GET_STATS", HELLO_IOCTL_GET_STATS, _IOC_READ);
 
+	/* GET_LEN must encode a fixed-width type so the ioctl number
+	 * doesn't change between 32- and 64-bit builds. */
+	if (_IOC_SIZE(HELLO_IOCTL_GET_LEN) == sizeof(hello_u64))
+		PASS("GET_LEN encodes a fixed-width 8-byte type");
+	else
+		FAIL("GET_LEN ioctl size %u, want %zu",
+		     (unsigned int)_IOC_SIZE(HELLO_IOCTL_GET_LEN),
+		     sizeof(hello_u64));
+
 	if (HELLO_MSG_MAX == 256)
 		PASS("HELLO_MSG_MAX == 256");
 	else
@@ -100,7 +109,7 @@ static void hw_basic(int fd)
 	const char *msg = "hello from user space\n";
 	char buf[256];
 	ssize_t n;
-	size_t len = 0;
+	hello_u64 len = 0;
 
 	if (ioctl(fd, HELLO_IOCTL_RESET) < 0) {
 		FAIL("ioctl RESET: %s", strerror(errno));
@@ -132,10 +141,10 @@ static void hw_basic(int fd)
 		return;
 	}
 	if (len != strlen(msg)) {
-		FAIL("GET_LEN %zu != %zu", len, strlen(msg));
+		FAIL("GET_LEN %llu != %zu", (unsigned long long)len, strlen(msg));
 		return;
 	}
-	PASS("ioctl GET_LEN -> %zu", len);
+	PASS("ioctl GET_LEN -> %llu", (unsigned long long)len);
 }
 
 static void hw_msg_ioctls(int fd)

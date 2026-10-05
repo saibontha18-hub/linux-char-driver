@@ -38,7 +38,11 @@ struct hello_stats {
 };
 
 #define HELLO_IOCTL_RESET     _IO('h', 0)	/* clear the buffer */
-#define HELLO_IOCTL_GET_LEN   _IOR('h', 1, size_t)	/* bytes currently stored */
+/* GET_LEN encodes a fixed-width u64, not size_t, so the ioctl number is
+ * the same on 32- and 64-bit builds. The driver has no compat_ioctl, so
+ * 32-bit processes on a 64-bit kernel are not handled - treat this
+ * interface as 64-bit user space only. */
+#define HELLO_IOCTL_GET_LEN   _IOR('h', 1, hello_u64)	/* bytes currently stored */
 #define HELLO_IOCTL_SET_MSG   _IOW('h', 2, struct hello_msg)	/* replace buffer */
 #define HELLO_IOCTL_GET_MSG   _IOR('h', 3, struct hello_msg)	/* fetch buffer */
 #define HELLO_IOCTL_GET_STATS _IOR('h', 4, struct hello_stats)	/* I/O counters */

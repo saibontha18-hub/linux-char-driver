@@ -62,7 +62,7 @@ static int hello_open(struct inode *inode, struct file *file)
 	mutex_unlock(&hdev->lock);
 
 	file->private_data = hdev;
-	pr_info("hello_char%u: opened (opens=%llu)\n",
+	pr_debug("hello_char%u: opened (opens=%llu)\n",
 		hdev->minor, hdev->opens);
 	return 0;
 }
@@ -72,7 +72,7 @@ static int hello_release(struct inode *inode, struct file *file)
 	struct hello_dev *hdev = file->private_data;
 
 	(void)inode;
-	pr_info("hello_char%u: closed\n", hdev->minor);
+	pr_debug("hello_char%u: closed\n", hdev->minor);
 	return 0;
 }
 
@@ -156,7 +156,8 @@ static long hello_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		memset(hdev->buf, 0, BUF_SIZE);
 		break;
 	case HELLO_IOCTL_GET_LEN:
-		if (put_user(hdev->len, (size_t __user *)arg))
+		/* fixed-width on the wire; hdev->len never exceeds BUF_SIZE */
+		if (put_user((hello_u64)hdev->len, (hello_u64 __user *)arg))
 			ret = -EFAULT;
 		break;
 	case HELLO_IOCTL_SET_MSG:
@@ -264,7 +265,8 @@ static int __init hello_init(void)
 	return 0;
 
 err_device:
-	/* i is one past the last device that was created successfully */
+	/* device_create failed for minor i; tear down minors i-1 .. 0,
+	 * newest first */
 	for (i--; i >= 0; i--)
 		device_destroy(hello_class, MKDEV(major, i));
 	class_destroy(hello_class);
