@@ -67,6 +67,16 @@ dmesg | tail -3            # look for "hello_char: unloaded"
 
 Loading an out-of-tree kernel module runs code in kernel space. Use a VM or a dedicated test machine, keep the module unloaded when not testing, and never `insmod` binaries you did not build yourself.
 
+## Screenshots
+
+The user-space test run — interface checks pass, the hardware checks skip cleanly without the module loaded:
+
+![hello_test run: 9 passed, 2 skipped, 0 failed](docs/screenshots/demo-io.png)
+
+What a build attempt looks like on a machine without kernel headers installed — `make` stops with an error since `/lib/modules/$(uname -r)/build` doesn't exist. On a normal host you'd just `sudo apt install linux-headers-$(uname -r)` first:
+
+![build attempt failing: no kernel headers for the running kernel](docs/screenshots/build-and-load.png)
+
 ## Files
 
 - `hello_char.c` — the driver
